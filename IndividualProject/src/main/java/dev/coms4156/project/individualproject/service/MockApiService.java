@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.coms4156.project.individualproject.model.Book;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,8 +17,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class MockApiService {
 
-  private ArrayList<Book> books;
-  private ArrayList<String> bags;
+  private List<Book> books;
+  private List<String> bags;
+  private final Logger logger = Logger.getLogger(MockApiService.class.getName());
 
   /**
    * Constructs a new {@code MockApiService} and loads book data from a JSON file located at
@@ -27,19 +31,25 @@ public class MockApiService {
     try (InputStream is = Thread.currentThread().getContextClassLoader()
         .getResourceAsStream("mockdata/books.json")) {
       if (is == null) {
-        System.err.println("Failed to find mockdata/books.json in resources.");
+        if (logger.isLoggable(Level.SEVERE)) {
+          logger.severe("Failed to find mockdata/books.json in resources.");
+        }
         books = new ArrayList<>(0);
       } else {
-        ObjectMapper mapper = new ObjectMapper();
-        books = mapper.readValue(is, new TypeReference<ArrayList<Book>>(){});
-        System.out.println("Successfully loaded books from mockdata/books.json.");
+        final ObjectMapper mapper = new ObjectMapper();
+        books = mapper.readValue(is, new TypeReference<>(){});
+        if (logger.isLoggable(Level.INFO)) {
+          logger.info("Successfully loaded books from mockdata/books.json.");
+        }
       }
     } catch (Exception e) {
-    // System.err.println("Failed to load books: " + e.getMessage());
+      if (logger.isLoggable(Level.SEVERE)) {
+        logger.severe("Failed to load books: " + e.getMessage());
+      }
     }
   }
 
-  public ArrayList<Book> getBooks() {
+  public List<Book> getBooks() {
     return books;
   }
 
@@ -50,9 +60,9 @@ public class MockApiService {
    * @param newBook A {@code Book} object containing the updated information
    *                to replace the existing entry.
    */
-  public void updateBook(Book newBook) {
-    ArrayList<Book> tmpBooks = new ArrayList<>();
-    for (Book book : books) {
+  public void updateBook(final Book newBook) {
+    final List<Book> tmpBooks = new ArrayList<>();
+    for (final Book book : books) {
       if (book.equals(newBook)) {
         tmpBooks.add(newBook);
       } else {
@@ -60,7 +70,7 @@ public class MockApiService {
       }
     }
 
-    this.books = this.books;
+    this.books = tmpBooks;
   }
 
   public void printBooks() {
